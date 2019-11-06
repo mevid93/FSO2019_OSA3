@@ -1,8 +1,10 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const morgan = require('morgan')
 
 app.use(bodyParser.json())
+app.use(morgan('tiny'))
 
 let persons = [
   {
@@ -37,7 +39,6 @@ app.get('/api/persons', (req, res) => {
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
-  console.log(body)
   if (!body.name || !body.number) {
     return res.status(400).json({ error: 'name or number missing' })
   } else if (persons.find(person => person.name === body.name)) {
