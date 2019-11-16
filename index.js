@@ -12,32 +12,6 @@ app.use(bodyParser.json())
 morgan.token('postcontent', function (req, res) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status - :response-time ms :postcontent'))
 
-let persons = [
-  {
-    name: "Arto Hellas",
-    number: "040-123456",
-    id: 1
-  },
-  {
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-    id: 2
-  },
-  {
-    name: "Dan Abramov",
-    number: "12-43-234345",
-    id: 3
-  },
-  {
-    name: "Mary Poppendieck",
-    number: "39-23-643122",
-    id: 4
-  }
-]
-
-const generateId = () => {
-  return Math.floor(Math.random() * 1000000)
-}
 
 // ROUTES
 
@@ -54,13 +28,9 @@ app.post('/api/persons', (req, res, next) => {
   if (!body.name || !body.number) {
     return res.status(400).json({ error: 'name or number missing' })
   }
-  //else if (persons.find(person => person.name === body.name)) {
-  //  return res.status(400).json({ error: 'name must be unique' })
-  //}
   const person = new Person({
     name: body.name,
-    number: body.number,
-    id: generateId()
+    number: body.number
   })
   person.save()
     .then(savedPerson => {
@@ -69,14 +39,13 @@ app.post('/api/persons', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(person => person.id == id)
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
+app.get('/api/persons/:id', (req, res, next) => {
+  const id = req.params.id
+  Person.findById(id)
+    .then(foundPerson => {
+      res.json(foundPerson.toJSON())
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -100,10 +69,14 @@ app.delete('/api/persons/:id', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get('/info', (req, res) => {
-  const howManyNumbers = persons.length
-  const date = new Date(Date.now())
-  res.send('<div><p>Phonebook has info for ' + howManyNumbers + ' people</p><p>' + date + '</p></div>')
+app.get('/info', (req, res, next) => {
+  Person.find({})
+    .then(persons => {
+      const howManyNumbers = persons.length
+      const date = new Date(Date.now())
+      res.send('<div><p>Phonebook has info for ' + howManyNumbers + ' people</p><p>' + date + '</p></div>')
+    })
+    .catch(error => next(error))
 })
 
 // ERROR HANDLING
