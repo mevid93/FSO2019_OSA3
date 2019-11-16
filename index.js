@@ -74,9 +74,11 @@ app.get('/api/persons/:id', (req, res) => {
 })
 
 app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  persons = persons.filter(person => person.id !== id)
-  res.status(204).end()
+  Person.findByIdAndDelete(req.params.id)
+    .then(result => {
+      res.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.get('/info', (req, res) => {
@@ -84,6 +86,12 @@ app.get('/info', (req, res) => {
   const date = new Date(Date.now())
   res.send('<div><p>Phonebook has info for ' + howManyNumbers + ' people</p><p>' + date + '</p></div>')
 })
+
+const unknownEndPoint = (req, res) => {
+  res.status(404).send({error: 'unknown endpoint'})
+}
+
+app.use(unknownEndPoint)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
